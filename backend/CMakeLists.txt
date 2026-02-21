@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
-project(my_game_server)
+project(OutbackBackend)
+
+# Tell CMake where the headers are
+include_directories(include)
+include_directories(../common/include)
+
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -7,7 +12,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Drogon REQUIRED)
 
 # Create the executable
-add_executable(my_game_server main.cpp)
+add_executable(outback_server src/main.cpp)
 
 # Link Drogon to our server
-target_link_libraries(my_game_server PRIVATE Drogon::Drogon)
+target_link_libraries(outback_server PRIVATE Drogon::Drogon)

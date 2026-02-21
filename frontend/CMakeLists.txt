@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
-project(my_web_client)
+project(OutbackFrontend)
+
+# Tell CMake where the headers are
+include_directories(include)
+include_directories(../common/include)
+
 set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
@@ -15,10 +20,10 @@ FetchContent_MakeAvailable(raylib)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-add_executable(my_web_client main.cpp)
-set_target_properties(my_web_client PROPERTIES SUFFIX ".js")
+add_executable(outback_web_client src/main.cpp)
+set_target_properties(outback_web_client PROPERTIES SUFFIX ".js")
 
-target_link_options(my_web_client PRIVATE "-s" "USE_GLFW=3" "-lwebsocket.js")
+target_link_options(outback_web_client PRIVATE "-s" "USE_GLFW=3" "-lwebsocket.js")
 
 # Link both Raylib and the JSON library
-target_link_libraries(my_web_client PRIVATE raylib nlohmann_json::nlohmann_json)
+target_link_libraries(outback_web_client PRIVATE raylib nlohmann_json::nlohmann_json)
