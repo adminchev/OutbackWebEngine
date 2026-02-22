@@ -15,6 +15,7 @@ find_package(Drogon REQUIRED)
 add_executable(outback_server 
     src/main.cpp 
     src/server.cpp
+	src/player.cpp
 )
 # Link Drogon to our server
 target_link_libraries(outback_server PRIVATE Drogon::Drogon)

@@ -6,14 +6,10 @@
 #include <unordered_map>
 #include <mutex>
 
-namespace Backend {
-	// 1. DESIGN PRIMITIVE: The Entity
-	struct Player {
-		float x = 0.0f;
-		float y = 1.0f; // 1 unit above the ground
-		float z = 0.0f;
-	};
+#include "player.hpp"
 
+namespace Backend {
+	
 	// 2. DESIGN PRIMITIVE: The Global Game State
 	extern std::unordered_map<drogon::WebSocketConnectionPtr, Player> players;
 	extern std::mutex stateMutex; // Protects the map from multithreading crashes

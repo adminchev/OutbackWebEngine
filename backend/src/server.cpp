@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "server.hpp"
+#include "player.hpp"
 
 namespace Backend {
 	 std::unordered_map<drogon::WebSocketConnectionPtr, Player> players;
@@ -11,11 +12,7 @@ namespace Backend {
 
 	void GameServer::handleNewConnection(const drogon::HttpRequestPtr &req, const drogon::WebSocketConnectionPtr &conn) {
 		std::lock_guard<std::mutex> lock(stateMutex);
-		Player start;
-		start.x = 0.0f; // Force Start at Center
-		start.y = 1.0f;
-		start.z = 0.0f; // Force Start at Center
-		players[conn] = start;
+		players[conn] = Player();
 	}	
 
 	void GameServer::handleNewMessage(const drogon::WebSocketConnectionPtr &conn, std::string &&message, const drogon::WebSocketMessageType &type) {
@@ -26,16 +23,17 @@ namespace Backend {
 			std::lock_guard<std::mutex> lock(stateMutex);
 			
 			// 1. Apply the movement
-			if (input.isMember("dx")) players[conn].x += input["dx"].asFloat();
-			if (input.isMember("dz")) players[conn].z += input["dz"].asFloat();
+			if (input.isMember("j") && input["j"].asBool()) players[conn].jump();
+			if (input.isMember("dx") || input.isMember("dz")) players[conn].move(input["dx"].asFloat(), input["dz"].asFloat());
 
 			// 2. THE LOGIC EXPERIMENT: Stay on the grid!
 			// If X is greater than 10, set it back to 10. If less than -10, set to -10.
-			if (players[conn].x > 10.0f)  players[conn].x = 10.0f;
-			if (players[conn].x < -10.0f) players[conn].x = -10.0f;
-			
-			if (players[conn].z > 10.0f)  players[conn].z = 10.0f;
-			if (players[conn].z < -10.0f) players[conn].z = -10.0f;
+			// if (players[conn].x > 10.0f)  players[conn].move(10.0f, 0.0f);
+			// if (players[conn].x > 10.0f)  players[conn].x = 10.0f;
+			// if (players[conn].x < -10.0f) players[conn].x = -10.0f;
+			//
+			// if (players[conn].z > 10.0f)  players[conn].z = 10.0f;
+			// if (players[conn].z < -10.0f) players[conn].z = -10.0f;
 		}
 	} 
 
@@ -60,9 +58,9 @@ namespace Backend {
 			Json::Value stateArray(Json::arrayValue);
 			for (auto const& [conn, player] : players) {
 				Json::Value p;
-				p["x"] = player.x;
-				p["y"] = player.y;
-				p["z"] = player.z;
+				p["x"] = player.getX();
+				p["y"] = player.getY();
+				p["z"] = player.getZ();
 				stateArray.append(p);
 			}
 
