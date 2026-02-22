@@ -12,7 +12,9 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Drogon REQUIRED)
 
 # Create the executable
-add_executable(outback_server src/main.cpp)
-
+add_executable(outback_server 
+    src/main.cpp 
+    src/server.cpp
+)
 # Link Drogon to our server
 target_link_libraries(outback_server PRIVATE Drogon::Drogon)
