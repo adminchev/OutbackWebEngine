@@ -20,7 +20,10 @@ FetchContent_MakeAvailable(raylib)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(json)
 
-add_executable(outback_web_client src/main.cpp)
+add_executable(outback_web_client 
+	src/main.cpp
+	src/game_client.cpp
+)
 set_target_properties(outback_web_client PROPERTIES SUFFIX ".js")
 
 target_link_options(outback_web_client PRIVATE "-s" "USE_GLFW=3" "-lwebsocket.js")
