@@ -3,11 +3,15 @@
 # ==========================================
 FROM emscripten/emsdk:latest AS frontend-builder
 
-WORKDIR /project/frontend
-# Copy only the frontend source code into this container
-COPY frontend/ .
+# Set the workdir to the root so we can copy multiple folders
+WORKDIR /project
 
-# Compile the Raylib C++ code into WebAssembly
+# CRITICAL FIX: Copy the shared logic so the frontend can see it
+COPY common/ ./common/
+COPY frontend/ ./frontend/
+
+# Move into the frontend folder to run the build
+WORKDIR /project/frontend
 RUN emcmake cmake -B build && cmake --build build
 
 # ==========================================
@@ -15,19 +19,27 @@ RUN emcmake cmake -B build && cmake --build build
 # ==========================================
 FROM drogonframework/drogon:latest
 
+WORKDIR /project
+
+# CRITICAL FIX: The backend also needs the shared logic to compile!
+COPY common/ ./common/
+COPY backend/ ./backend/
+
+# Create the public folder inside the backend directory
+RUN mkdir -p ./backend/public
+
+# Copy our custom HTML from the HOST machine context
+COPY frontend/web/index.html ./backend/public/index.html
+
+# Copy the compiled JS and WASM files from STAGE 1
+COPY --from=frontend-builder /project/frontend/build/outback_web_client.js ./backend/public/
+COPY --from=frontend-builder /project/frontend/build/outback_web_client.wasm ./backend/public/
+
+# Move into the backend folder to compile
 WORKDIR /project/backend
-COPY backend/ .
-RUN mkdir -p public
-
-# Copy our custom, clean HTML file from the frontend source folder
-COPY frontend/index.html ./public/index.html
-
-# Copy the compiled JS and WASM files from the Emscripten builder
-COPY --from=frontend-builder /project/frontend/build/my_web_client.js ./public/
-COPY --from=frontend-builder /project/frontend/build/my_web_client.wasm ./public/
-
-# Compile the Drogon Tick Server
 RUN cmake -B build && cmake --build build
 
 EXPOSE 8080
-CMD ["./build/my_game_server"]
+
+# Run the server!
+CMD ["./build/outback_server"]
