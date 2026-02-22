@@ -55,29 +55,31 @@ namespace Frontend {
 		emscripten_websocket_set_onmessage_callback(ws, NULL, on_message);
 	}
 
-	void sendInput(float dx, float dz) {
-		std::string msg = "{\"dx\":" + std::to_string(dx) + ", \"dz\":" + std::to_string(dz) + "}";
+	void sendInput(float dx, float dz, bool jump) {
+		std::string msg = "{\"dx\":" + std::to_string(dx) + 
+			", \"dz\":" + std::to_string(dz) +
+			", \"j\":" + std::to_string(jump) +
+		"}";
 		emscripten_websocket_send_utf8_text(ws, msg.c_str());
 	}
 
 	void UpdateDrawFrame(void) {
 		// --- INPUT ---
 		float baseSpeed = 5.0f;
-		// if (IsKeyDown(KEY_W)) sendInput(0, -speed);
-		// if (IsKeyDown(KEY_S)) sendInput(0, speed);
-		// if (IsKeyDown(KEY_A)) sendInput(-speed, 0);
-		// if (IsKeyDown(KEY_D)) sendInput(speed, 0);
 		float distanceThisFrame = baseSpeed * GetFrameTime();
 		float dx = 0.0f; 
 		float dz = 0.0f;
+		bool jump;
 
 		if (IsKeyDown(KEY_W)) dz -= distanceThisFrame;
 		if (IsKeyDown(KEY_S)) dz += distanceThisFrame;
 		if (IsKeyDown(KEY_A)) dx -= distanceThisFrame;
 		if (IsKeyDown(KEY_D)) dx += distanceThisFrame;
+		if (IsKeyDown(KEY_SPACE)) jump = true;
 
-		if (dx != 0.0f || dz != 0.0f) {
-			sendInput(dx, dz);
+		if (dx != 0.0f || dz != 0.0f || jump) {
+			sendInput(dx, dz, jump);
+			jump = false;
 		}
 
 		// --- 3D RENDERING ---
