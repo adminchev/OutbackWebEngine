@@ -17,6 +17,7 @@ namespace Backend {
 			float getX(void) const;
 			float getY(void) const;
 			float getZ(void) const;
+			void updatePhysics(double timeDelta);
 	};
 }
 #endif // !BACKEND_PLAYER

@@ -5,6 +5,7 @@
 
 #include "server.hpp"
 #include "player.hpp"
+#include "clock.hpp"
 
 namespace Backend {
 	 std::unordered_map<drogon::WebSocketConnectionPtr, Player> players;
@@ -25,15 +26,6 @@ namespace Backend {
 			// 1. Apply the movement
 			if (input.isMember("j") && input["j"].asBool()) players[conn].jump();
 			if (input.isMember("dx") || input.isMember("dz")) players[conn].move(input["dx"].asFloat(), input["dz"].asFloat());
-
-			// 2. THE LOGIC EXPERIMENT: Stay on the grid!
-			// If X is greater than 10, set it back to 10. If less than -10, set to -10.
-			// if (players[conn].x > 10.0f)  players[conn].move(10.0f, 0.0f);
-			// if (players[conn].x > 10.0f)  players[conn].x = 10.0f;
-			// if (players[conn].x < -10.0f) players[conn].x = -10.0f;
-			//
-			// if (players[conn].z > 10.0f)  players[conn].z = 10.0f;
-			// if (players[conn].z < -10.0f) players[conn].z = -10.0f;
 		}
 	} 
 
@@ -43,33 +35,40 @@ namespace Backend {
 		LOG_INFO << "Player left. Total players: " << players.size();
 	}
 
-	// 4. DESIGN PRIMITIVE: The Tick Engine (Runs at 60 FPS)
+	// The Tick Engine (Runs at 60 FPS)
 	void gameTickLoop() {
+		Clock serverTimer;
 		while (true) {
-			// Sleep for ~16 milliseconds (1000ms / 60 = 16.6ms)
-			std::this_thread::sleep_for(std::chrono::milliseconds(16));
+			double td = serverTimer.getTimeDelta();
+			serverTimer.restart();
+
+			// try to sleep for exactly 16 milliseconds (16ms - td), td is how long it took to execute the code
+		    double sleep = TARGET_TICK_RATE - td;
+			if (sleep < 0) sleep = 0;
+			std::this_thread::sleep_for(std::chrono::duration<double>(sleep));
 
 			std::lock_guard<std::mutex> lock(stateMutex);
 			
-			if (players.empty()) continue; // Don't do math if the server is empty
+			if (!players.empty()) {// Don't do math if the server is empty
 
-			// 1. Calculate physics (e.g., apply gravity to all players)
-			// 2. Build the state JSON
-			Json::Value stateArray(Json::arrayValue);
-			for (auto const& [conn, player] : players) {
-				Json::Value p;
-				p["x"] = player.getX();
-				p["y"] = player.getY();
-				p["z"] = player.getZ();
-				stateArray.append(p);
-			}
+				// Build the state JSON and calculate physics (e.g., apply gravity to all players) 
+				Json::Value stateArray(Json::arrayValue);
+				for (auto & [conn, player] : players) {
+					Json::Value p;
+					p["x"] = player.getX();
+					p["y"] = player.getY();
+					p["z"] = player.getZ();
+					stateArray.append(p);
+					player.updatePhysics(td);
+				}
 
-			Json::FastWriter writer;
-			std::string stateString = writer.write(stateArray);
+				Json::FastWriter writer;
+				std::string stateString = writer.write(stateArray);
 
-			// 3. Broadcast the state to everyone
-			for (auto const& [conn, player] : players) {
-				conn->send(stateString);
+				// 3. Broadcast the state to everyone
+				for (auto const& [conn, player] : players) {
+					conn->send(stateString);
+				}
 			}
 		}
 	}

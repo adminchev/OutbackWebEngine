@@ -9,13 +9,12 @@
 #include "player.hpp"
 
 namespace Backend {
-	
-	// 2. DESIGN PRIMITIVE: The Global Game State
+	constexpr double TARGET_TICK_RATE = 0.0166;
+
 	extern std::unordered_map<drogon::WebSocketConnectionPtr, Player> players;
 	extern std::mutex stateMutex; // Protects the map from multithreading crashes
 
-
-	// 3. DESIGN PRIMITIVE: The WebSocket Controller (Only handles inputs)
+	// The WebSocket Controller (Only handles inputs)
 	class GameServer : public drogon::WebSocketController<GameServer> {
 	public:
 		void handleNewConnection(const drogon::HttpRequestPtr &req, const drogon::WebSocketConnectionPtr &conn);
