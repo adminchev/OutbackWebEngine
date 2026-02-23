@@ -6,20 +6,15 @@
 #include <unordered_map>
 #include <mutex>
 
-namespace Backend {
-	// 1. DESIGN PRIMITIVE: The Entity
-	struct Player {
-		float x = 0.0f;
-		float y = 1.0f; // 1 unit above the ground
-		float z = 0.0f;
-	};
+#include "player.hpp"
 
-	// 2. DESIGN PRIMITIVE: The Global Game State
+namespace Backend {
+	constexpr double TARGET_TICK_RATE = 0.0166;
+
 	extern std::unordered_map<drogon::WebSocketConnectionPtr, Player> players;
 	extern std::mutex stateMutex; // Protects the map from multithreading crashes
 
-
-	// 3. DESIGN PRIMITIVE: The WebSocket Controller (Only handles inputs)
+	// The WebSocket Controller (Only handles inputs)
 	class GameServer : public drogon::WebSocketController<GameServer> {
 	public:
 		void handleNewConnection(const drogon::HttpRequestPtr &req, const drogon::WebSocketConnectionPtr &conn);
