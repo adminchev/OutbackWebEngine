@@ -46,9 +46,20 @@ namespace Frontend {
 		return EM_TRUE;
 	}
 
+	EM_JS(char*, get_websocket_url, (const char* port, const char* path), {
+         const url = 'ws://' + window.location.hostname + ':' + UTF8ToString(port) + UTF8ToString(path); 
+         // This part allocates memory inside the Wasm module and returns the URL to C++
+         const lengthBytes = lengthBytesUTF8(url) + 1;
+         const urlOnHeap = _malloc(lengthBytes);
+         stringToUTF8(url, urlOnHeap, lengthBytes);
+         return urlOnHeap;
+    });
+
+
 	void setupWebSocket() {
+		char* dynamicUrl = get_websocket_url("8080", "/game");
 		EmscriptenWebSocketCreateAttributes ws_attrs = {
-			"ws://localhost:8080/game",
+			dynamicUrl,
 			NULL, EM_TRUE
 		};
 		ws = emscripten_websocket_new(&ws_attrs);
