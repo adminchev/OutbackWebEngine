@@ -30,3 +30,4 @@ target_link_options(outback_web_client PRIVATE "-s" "USE_GLFW=3" "-lwebsocket.js
 
 # Link both Raylib and the JSON library
 target_link_libraries(outback_web_client PRIVATE raylib nlohmann_json::nlohmann_json)
+target_include_directories(outback_web_client PRIVATE include)

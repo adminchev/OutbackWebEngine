@@ -20,3 +20,4 @@ add_executable(outback_server
 )
 # Link Drogon to our server
 target_link_libraries(outback_server PRIVATE Drogon::Drogon)
+target_include_directories(outback_server PRIVATE include)
