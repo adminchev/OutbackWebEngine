@@ -1,3 +1,8 @@
+# Paths will be different for everyone
+compile_commands.json
+.cache/
+*/build/
+
 # Prerequisites
 *.d
 
